@@ -222,15 +222,9 @@ export default {
   created() {
     this.loadCoinsList();
     const tickersData = localStorage.getItem("crypto-list");
-    // const notExistingCoins = JSON.parse(
-    //   localStorage.getItem("noRequestCoinPrice")
-    // );
     if (tickersData) {
       this.tickers = JSON.parse(tickersData);
       this.tickers.forEach(ticker => {
-        // if (notExistingCoins[ticker.name]) {
-        //   ticker.notExist = true;
-        // }
         subscribeToTicker(ticker.name, newPrice =>
           this.updateTicker(ticker.name, newPrice)
         );
@@ -249,8 +243,9 @@ export default {
   },
 
   mounted() {
-    window.addEventListener("storage", e => {
-      this.tickers = JSON.parse(localStorage.getItem(e.key));
+    window.addEventListener("storage", () => {
+      console.log(JSON.parse(window.localStorage.getItem("crypto-list")));
+      this.tickers = JSON.parse(window.localStorage.getItem("crypto-list"));
     });
   },
 
@@ -259,7 +254,9 @@ export default {
       const start = (this.page - 1) * 6;
       const end = this.page * 6;
       return this.tickers
-        .filter(ticker => ticker.name.includes(this.filter.toUpperCase()))
+        .filter(ticker => {
+          return ticker.name.includes(this.filter.toUpperCase());
+        })
         .slice(start, end);
     },
 
@@ -286,6 +283,16 @@ export default {
 
   methods: {
     updateTicker(tickerName, price) {
+      if (localStorage.getItem("notExistingCoins")) {
+        JSON.parse(localStorage.getItem("notExistingCoins")).forEach(coin => {
+          this.tickers.forEach(ticker => {
+            if (ticker.name === coin) {
+              ticker.notExist = true;
+            }
+          });
+        });
+      }
+
       this.tickers
         .filter(t => t.name === tickerName)
         .forEach(t => {
@@ -324,8 +331,7 @@ export default {
       }
       const currentTicker = {
         name: coinName.toUpperCase(),
-        price: "-",
-        notExist: null
+        price: "-"
       };
       if (this.tickers.length === 0) {
         this.tickers.push(currentTicker);
@@ -341,7 +347,6 @@ export default {
       );
       if (!matchTicker) {
         this.tickers.push(currentTicker);
-        console.log(this.tickers);
         subscribeToTicker(currentTicker.name, newPrice => {
           this.updateTicker(currentTicker.name, newPrice);
         });
@@ -373,6 +378,16 @@ export default {
         this.page -= 1;
       }
       unsubscribeFromTicker(tickerToRemove.name);
+      let notExistingCoins = JSON.parse(
+        localStorage.getItem("notExistingCoins")
+      );
+      notExistingCoins = notExistingCoins.filter(coin => {
+        return coin != tickerToRemove.name;
+      });
+      localStorage.setItem(
+        "notExistingCoins",
+        JSON.stringify(notExistingCoins)
+      );
     }
   },
   watch: {
@@ -385,12 +400,11 @@ export default {
       this.graph = [];
     },
 
-    tickers() {
-      // handler() {
-      //   localStorage.setItem("crypto-list", JSON.stringify(this.tickers));
-      // },
-      // deep: true
-      localStorage.setItem("crypto-list", JSON.stringify(this.tickers));
+    tickers: {
+      handler() {
+        localStorage.setItem("crypto-list", JSON.stringify(this.tickers));
+      },
+      deep: true
     },
 
     filter() {

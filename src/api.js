@@ -9,6 +9,8 @@ const socket = new WebSocket(
 
 const AGGREGATE_INDEX = "5";
 
+const notExistingCoins = [];
+
 socket.addEventListener("message", e => {
     const {
         TYPE: type,
@@ -22,13 +24,17 @@ socket.addEventListener("message", e => {
         const coin = JSON.parse(
             e.data
         ).PARAMETER.split('~')[2];
-        let coinList = JSON.parse(localStorage.getItem('crypto-list'));
-        coinList.forEach(ticker => {
-            if (ticker.name === coin) {
-                ticker.notExist = true;
-            }
-        })
-        localStorage.setItem('crypto-list', JSON.stringify(coinList));
+        if (notExistingCoins.length == 0) {
+            notExistingCoins.push(coin);
+        } else {
+            notExistingCoins.forEach(coinName => {
+                if (coinName != coin) {
+                    notExistingCoins.push(coin);
+                }
+                return;
+            })
+        }
+        localStorage.setItem('notExistingCoins', JSON.stringify(notExistingCoins));
     }
     if (type !== AGGREGATE_INDEX || newPrice === undefined) {
         return;
@@ -78,5 +84,3 @@ export const unsubscribeFromTicker = ticker => {
     tickersHandlers.delete(ticker);
     unsubscribeFromTickerOnWs(ticker);
 };
-
-window.tickers = tickersHandlers
