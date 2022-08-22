@@ -158,12 +158,16 @@
         <h3 class="text-lg leading-6 font-medium text-gray-900 my-8">
           {{ selectedTicker.name }} - USD
         </h3>
-        <div class="flex items-end border-gray-600 border-b border-l h-64">
+        <div
+          class="flex items-end border-gray-600 border-b border-l h-64"
+          ref="graph"
+        >
           <div
             v-for="(bar, idx) in normalizedGraph"
+            ref="graphElement"
             :key="idx"
-            :style="{ height: `${bar}%` }"
-            class="bg-purple-800 border w-10"
+            :style="{ height: `${bar}%`, width: `${whGraphElement}px` }"
+            class="bg-purple-800 border"
           ></div>
         </div>
         <button
@@ -200,7 +204,6 @@
 
 <script>
 import { subscribeToTicker, unsubscribeFromTicker } from "./api";
-
 export default {
   name: "App",
 
@@ -215,7 +218,9 @@ export default {
       selectedTicker: null,
       loadingCoins: true,
       alreadyAdd: false,
-      page: 1
+      page: 1,
+      maxGraphElements: 1,
+      whGraphElement: 40
     };
   },
 
@@ -243,10 +248,16 @@ export default {
   },
 
   mounted() {
-    window.addEventListener("storage", () => {
-      console.log(JSON.parse(window.localStorage.getItem("crypto-list")));
-      this.tickers = JSON.parse(window.localStorage.getItem("crypto-list"));
+    window.addEventListener("storage", event => {
+      if (event) {
+        this.tickers = JSON.parse(window.localStorage.getItem("crypto-list"));
+      }
     });
+    window.addEventListener("resize", this.calcMaxGraphElements);
+  },
+
+  beforeUnmount() {
+    window.removeEventListener("resize", this.calcMaxGraphElements);
   },
 
   computed: {
@@ -263,11 +274,9 @@ export default {
     normalizedGraph() {
       const maxValue = Math.max(...this.graph);
       const minValue = Math.min(...this.graph);
-
       if (maxValue == minValue) {
         return this.graph.map(() => 50);
       }
-
       return this.graph.map(
         price => 5 + ((price - minValue) * 95) / (maxValue - minValue)
       );
@@ -282,6 +291,13 @@ export default {
   },
 
   methods: {
+    calcMaxGraphElements() {
+      if (!this.$refs.graph) {
+        return;
+      }
+      this.maxGraphElements =
+        this.$refs.graph.clientWidth / this.whGraphElement;
+    },
     updateTicker(tickerName, price) {
       if (localStorage.getItem("notExistingCoins")) {
         JSON.parse(localStorage.getItem("notExistingCoins")).forEach(coin => {
@@ -298,6 +314,9 @@ export default {
         .forEach(t => {
           if (t === this.selectedTicker) {
             this.graph.push(price);
+            if (this.graph.length > this.maxGraphElements) {
+              this.graph.shift();
+            }
           }
           t.price = price;
         });
@@ -391,6 +410,11 @@ export default {
     }
   },
   watch: {
+    maxGraphElements() {
+      if (this.graph.length > this.maxGraphElements) {
+        this.graph = this.graph.slice(1, this.maxGraphElements);
+      }
+    },
     filteredTickers() {
       if (this.filteredTickers.length == 0 && this.page > 1) {
         this.page -= 1;
@@ -398,6 +422,9 @@ export default {
     },
     selectedTicker() {
       this.graph = [];
+      this.$nextTick().then(() => {
+        this.calcMaxGraphElements();
+      });
     },
 
     tickers: {
