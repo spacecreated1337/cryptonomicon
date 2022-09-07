@@ -46,6 +46,24 @@ export default {
     AddButton,
     TickerHelper
   },
+  emits: {
+    "add-ticker": coinName => {
+      if (typeof coinName === "string") {
+        return true;
+      } else {
+        console.warn(`Invalid submit event payload on AddTicker!`);
+        return false;
+      }
+    },
+    "search-coin": tickerName => {
+      if (typeof tickerName === "string") {
+        return true;
+      } else {
+        console.warn(`Invalid submit event payload on AddTicker!`);
+        return false;
+      }
+    }
+  },
   data() {
     return {
       ticker: ""
