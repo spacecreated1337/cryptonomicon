@@ -62,7 +62,7 @@ export default {
   },
   mounted() {
     document.body.addEventListener("keyup", e => {
-      if (e.code == "Escape" || !this.showModalSecond) {
+      if (e.code == "Escape") {
         this.$emit("close-modal");
       }
     });
@@ -70,13 +70,11 @@ export default {
   methods: {
     closeModal(event) {
       let target = event.target;
-      if (!this.showModalSecond) {
-        if (
-          target.classList.contains("modal-overflow") ||
-          target.closest("button")
-        ) {
-          this.$emit("close-modal");
-        }
+      if (
+        target.classList.contains("modal-overflow") ||
+        target.closest("button")
+      ) {
+        this.$emit("close-modal");
       }
     }
   }
