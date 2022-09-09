@@ -11,7 +11,7 @@
         v-for="(bar, idx) in normalizedGraph"
         ref="graphElement"
         :key="idx"
-        :style="{ height: `${bar}%`, width: `${whGraphElement}px` }"
+        :style="{ height: `${bar}%`, width: `${widthGraphElement}px` }"
         class="bg-purple-800 border"
       ></div>
     </div>
@@ -53,11 +53,6 @@ export default {
       required: false
     },
 
-    whGraphElement: {
-      type: Number,
-      required: true
-    },
-
     graph: {
       type: Array,
       required: true
@@ -76,7 +71,8 @@ export default {
   },
   data() {
     return {
-      maxGraphElements: 1
+      maxGraphElements: 1,
+      widthGraphElement: 40
     };
   },
   mounted() {
@@ -95,7 +91,7 @@ export default {
         return;
       }
       this.maxGraphElements = Math.floor(
-        this.$refs.graph.clientWidth / this.whGraphElement
+        this.$refs.graph.clientWidth / this.widthGraphElement
       );
       this.$emit("changeMaxGraphElements", this.maxGraphElements);
     }

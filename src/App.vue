@@ -26,13 +26,72 @@
     </div> -->
     <div class="container">
       <section>
+        <div class="mb-8">
+          <button
+            @click="showModalFirst = true"
+            class="mr-1.5 bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded transition duration-500 ease-in-out hover:bg-red-500 transform"
+          >
+            First modal
+          </button>
+          <modal
+            :showModalFirst="showModalFirst"
+            @close-modal="showModalFirst = false"
+            v-show="showModalFirst"
+          >
+            <template v-slot:body>
+              <h2>First Modal</h2>
+              <p class="text-base leading-relaxed text-gray-500">
+                With less than a month to go before the European Union enacts
+                new consumer privacy laws for its citizens, companies around the
+                world are updating their terms of service agreements to comply.
+              </p>
+              <p class="text-base leading-relaxed text-gray-500 ">
+                The European Union’s General Data Protection Regulation
+                (G.D.P.R.) goes into effect on May 25 and is meant to ensure a
+                common set of data rights in the European Union. It requires
+                organizations to notify users as soon as possible of high-risk
+                data breaches that could personally affect them.
+              </p>
+            </template>
+          </modal>
+          <button
+            @click="showModalSecond = true"
+            class="mr-1.5 bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded transition duration-500 ease-in-out hover:bg-red-500 transform"
+          >
+            Second modal
+          </button>
+          <modal
+            v-show="showModalSecond"
+            @close-modal="showModalSecond = false"
+            title="Second Modal Title"
+            :showModalSecond="showModalSecond"
+          >
+            <template v-slot:body>
+              <h2>
+                Введите слово <strong>'Закрыть'</strong>, чтобы закрыть
+                модальное окно
+              </h2>
+            </template>
+            <template v-slot:footer>
+              <input type="text" v-model="access" />
+              <a
+                @click.prevent="accessToDelete"
+                href="#"
+                type="button"
+                class="text-white bg-blue-700 hover:bg-blue-800  cursor-pointer focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg px-5 py-2.5 text-center "
+              >
+                Ok
+              </a>
+            </template>
+          </modal>
+        </div>
+
         <add-ticker
           @add-ticker="add"
           :helper="helper"
           :alreadyAdd="alreadyAdd"
           @search-coin="searchingCoins"
         />
-
         <div class="mb-3">
           <button
             v-if="page > 1"
@@ -107,7 +166,6 @@
         <ticker-graph
           :selectedTicker="selectedTicker"
           :normalizedGraph="normalizedGraph"
-          :whGraphElement="whGraphElement"
           :graph="graph"
           @changeMaxGraphElements="calcMaxGraphElements"
           @close-graph="closeGraph"
@@ -121,12 +179,14 @@
 import { subscribeToTicker, unsubscribeFromTicker } from "./api";
 import AddTicker from "./components/AddTicker.vue";
 import TickerGraph from "./components/TickerGraph.vue";
+import Modal from "./components/Modals/Modal.vue";
 export default {
   name: "App",
 
   components: {
     AddTicker,
-    TickerGraph
+    TickerGraph,
+    Modal
   },
 
   data() {
@@ -139,8 +199,10 @@ export default {
       selectedTicker: null,
       alreadyAdd: false,
       page: 1,
-      whGraphElement: 40,
-      maxGraphElements: 1
+      maxGraphElements: 1,
+      showModalFirst: false,
+      showModalSecond: false,
+      access: ""
     };
   },
 
@@ -206,6 +268,12 @@ export default {
   },
 
   methods: {
+    accessToDelete() {
+      if (this.access === "Закрыть") {
+        this.showModalSecond = false;
+        this.access = "";
+      }
+    },
     closeGraph() {
       this.selectedTicker = null;
     },
