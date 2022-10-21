@@ -35,7 +35,7 @@
           </button>
           <modal
             :showModalFirst="showModalFirst"
-            @close-modal="showModalFirst = false"
+            @close="showModalFirst = false"
             v-show="showModalFirst"
           >
             <template v-slot:body>
@@ -62,9 +62,10 @@
           </button>
           <modal
             v-show="showModalSecond"
-            @close-modal="showModalSecond = false"
+            @close="showModalSecond = false"
             title="Second Modal Title"
             :showModalSecond="showModalSecond"
+            @ok="modalConfirmed"
           >
             <template v-slot:body>
               <h2>
@@ -72,16 +73,22 @@
                 модальное окно
               </h2>
             </template>
-            <template v-slot:footer>
-              <input type="text" v-model="access" />
-              <a
-                @click.prevent="accessToDelete"
+            <template #footer="{confirm}">
+              <input
+                type="text"
+                v-model="access"
+                :placeholder="$options.CONFIRMATION__TEXT"
+              />
+              <button
+                :disabled="!isConfirmationText"
+                @click="confirm"
                 href="#"
                 type="button"
                 class="text-white bg-blue-700 hover:bg-blue-800  cursor-pointer focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg px-5 py-2.5 text-center "
+                :class="{ 'opacity-25': !isConfirmationText }"
               >
                 Ok
-              </a>
+              </button>
             </template>
           </modal>
         </div>
@@ -238,6 +245,9 @@ export default {
   },
 
   computed: {
+    isConfirmationText() {
+      return this.$options.CONFIRMATION__TEXT === this.access;
+    },
     normalizedGraph() {
       const maxValue = Math.max(...this.graph);
       const minValue = Math.min(...this.graph);
@@ -266,13 +276,11 @@ export default {
       };
     }
   },
-
+  CONFIRMATION__TEXT: "Закрыть",
   methods: {
-    accessToDelete() {
-      if (this.access === "Закрыть") {
-        this.showModalSecond = false;
-        this.access = "";
-      }
+    modalConfirmed() {
+      this.showModalSecond = false;
+      this.access = "";
     },
     closeGraph() {
       this.selectedTicker = null;

@@ -1,9 +1,12 @@
 <template>
   <div
-    @click="closeModal"
+    @click="close"
     class="overflow fixed z-50 modal-overflow flex justify-center"
   >
-    <div class="relative mt-16 p-4 w-full max-w-2xl h-full md:h-auto">
+    <div
+      class="relative mt-16 p-4 w-full max-w-2xl h-full md:h-auto"
+      @click.stop
+    >
       <!-- Modal content -->
       <div class="relative bg-white rounded-lg shadow">
         <!-- Modal header -->
@@ -12,6 +15,7 @@
             {{ title }}
           </h3>
           <button
+            @click="close"
             type="button"
             class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center close-modal"
             data-modal-toggle="defaultModal"
@@ -41,7 +45,7 @@
           v-if="showModalSecond"
           class="flex p-6 space-x-2 rounded-b border-t border-gray-200 justify-end"
         >
-          <slot name="footer"></slot>
+          <slot name="footer" :confirm="confirm"></slot>
         </div>
       </div>
     </div>
@@ -60,21 +64,29 @@ export default {
       required: false
     }
   },
+  emits: {
+    close: null,
+    ok: null
+  },
+  data() {
+    return {};
+  },
   mounted() {
-    document.body.addEventListener("keyup", e => {
-      if (e.code == "Escape") {
-        this.$emit("close-modal");
-      }
-    });
+    document.body.addEventListener("keyup", this.handlekeyUp);
+  },
+  beforeUnmount() {
+    document.body.removeEventListener("keyup", this.handlekeyUp);
   },
   methods: {
-    closeModal(event) {
-      let target = event.target;
-      if (
-        target.classList.contains("modal-overflow") ||
-        target.closest("button")
-      ) {
-        this.$emit("close-modal");
+    close() {
+      this.$emit("close");
+    },
+    confirm() {
+      this.$emit("ok");
+    },
+    handlekeyUp(e) {
+      if (e.code == "Escape") {
+        this.closeModal();
       }
     }
   }
